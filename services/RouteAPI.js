@@ -44,7 +44,7 @@ class RouteAPI {
 
     static async getRandom() {
         let result = await axios.get(`${baseUrl}/random`).catch(e => {
-            return { status: e.response.status, data: null }
+            return { status: 500, data: null }
         });
 
         return { status: result.status, data: result.data };

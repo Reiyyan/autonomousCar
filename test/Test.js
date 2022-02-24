@@ -2,6 +2,7 @@ var chai = require('chai')
 var chaiHttp = require('chai-http');
 var expect = require('chai').expect
 chai.use(chaiHttp);
+var equal = require('deep-equal');
 
 // Services for testing
 var CarDriver = require('../services/CarDriver');
@@ -14,42 +15,280 @@ let driverObject = new CarDriver();
 
 let baseUrl = 'http://localhost:3000'
 
+// NOTE: I've kept all tests in one file for sake of simplicity for the time being, in a real project tests would be split out per components.
+
 describe('Testing Points API', function () {
     it('GET /empty-route', async () => {
         let resultAPI = await RouteAPI.getEmptyRoute();
+        let expectedResult = {
+            status: 200,
+            data: {
+                route: {
+                    "track": [],
+                    "travelLog": []
+                }
+            }
+        }
         expect(resultAPI).to.be.an('object');
         expect(resultAPI.status).to.equal(200);
-
+        expect(resultAPI).to.eql(expectedResult);
     }).timeout(time);
 
     it('GET /success-no-obstacles', async () => {
         let resultAPI = await RouteAPI.getSuccessNoObstacles();
+        let expectedResult = {
+            status: 200,
+            data: {
+                route: {
+                    "track": [],
+                    "travelLog": [
+                        {
+                            "position": 1,
+                            "laneChange": "left"
+                        },
+                        {
+                            "position": 5,
+                            "laneChange": "right"
+                        },
+                        {
+                            "position": 10,
+                            "laneChange": "right"
+                        }
+                    ]
+                }
+            }
+        }
         expect(resultAPI).to.be.an('object');
         expect(resultAPI.status).to.equal(200);
+        expect(resultAPI).to.eql(expectedResult);
+
     }).timeout(time);
 
     it('GET /success-with-obstacles', async () => {
         let resultAPI = await RouteAPI.getSuccessWithObstacles();
+        let expectedResult = {
+            status: 200,
+            data: {
+                route: {
+                    "track": [
+                        {
+                            "position": 2,
+                            "obstacles": ["a"]
+                        },
+                        {
+                            "position": 5,
+                            "obstacles": ["b"]
+                        },
+                        {
+                            "position": 10,
+                            "obstacles": ["b", "c"]
+                        }
+                    ],
+                    "travelLog": [
+                        {
+                            "position": 5,
+                            "laneChange": "left"
+                        },
+                        {
+                            "position": 6,
+                            "laneChange": "right"
+                        },
+                        {
+                            "position": 8,
+                            "laneChange": "left"
+                        }
+                    ]
+                }
+            }
+        }
         expect(resultAPI).to.be.an('object');
         expect(resultAPI.status).to.equal(200);
+        expect(resultAPI).to.eql(expectedResult);
     }).timeout(time);
 
     it('GET /failure-out-of-bounds', async () => {
         let resultAPI = await RouteAPI.getFailureOutOfBounds();
+        let expectedResult = {
+            status: 200,
+            data: {
+                route: {
+                    "track": [],
+                    "travelLog": [
+                        {
+                            "position": 1,
+                            "laneChange": "left"
+                        },
+                        {
+                            "position": 2,
+                            "laneChange": "left"
+                        },
+                        {
+                            "position": 3,
+                            "laneChange": "left"
+                        }
+                    ]
+                }
+            }
+        }
         expect(resultAPI).to.be.an('object');
         expect(resultAPI.status).to.equal(200);
+        expect(resultAPI).to.eql(expectedResult);
     }).timeout(time);
 
     it('GET /failure-hits-obstacle', async () => {
         let resultAPI = await RouteAPI.getFailureHitsObstacle();
+        let expectedResult = {
+            status: 200,
+            data: {
+                route: {
+                    "track": [
+                        {
+                            "position": 3,
+                            "obstacles": ["b"]
+                        }
+                    ],
+                    "travelLog": []
+                }
+            }
+        }
         expect(resultAPI).to.be.an('object');
         expect(resultAPI.status).to.equal(200);
+        expect(resultAPI).to.eql(expectedResult);
     }).timeout(time);
 
     it('GET /random', async () => {
         let resultAPI = await RouteAPI.getRandom();
         expect(resultAPI).to.be.an('object');
         expect(resultAPI).to.satisfy(function (resultAPI) { return (resultAPI.status === 200 || resultAPI.status === 500); });
+        expect(resultAPI).to.satisfy(function (resultAPI) {
+            // Performing a test on each expected output of random
+            return (
+                equal(resultAPI,
+                    {
+                        status: 200,
+                        data: {
+                            route: {
+                                "track": [],
+                                "travelLog": []
+                            }
+                        }
+                    }
+                )
+
+                ||
+
+                equal(resultAPI,
+                    {
+                        status: 200,
+                        data: {
+                            route: {
+                                "track": [],
+                                "travelLog": [
+                                    {
+                                        "position": 1,
+                                        "laneChange": "left"
+                                    },
+                                    {
+                                        "position": 5,
+                                        "laneChange": "right"
+                                    },
+                                    {
+                                        "position": 10,
+                                        "laneChange": "right"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                )
+
+                ||
+
+                equal(resultAPI, {
+                    status: 200,
+                    data: {
+                        route: {
+                            "track": [
+                                {
+                                    "position": 2,
+                                    "obstacles": ["a"]
+                                },
+                                {
+                                    "position": 5,
+                                    "obstacles": ["b"]
+                                },
+                                {
+                                    "position": 10,
+                                    "obstacles": ["b", "c"]
+                                }
+                            ],
+                            "travelLog": [
+                                {
+                                    "position": 5,
+                                    "laneChange": "left"
+                                },
+                                {
+                                    "position": 6,
+                                    "laneChange": "right"
+                                },
+                                {
+                                    "position": 8,
+                                    "laneChange": "left"
+                                }
+                            ]
+                        }
+                    }
+                })
+
+                ||
+
+                equal(resultAPI,
+                    {
+                        status: 200,
+                        data: {
+                            route: {
+                                "track": [],
+                                "travelLog": [
+                                    {
+                                        "position": 1,
+                                        "laneChange": "left"
+                                    },
+                                    {
+                                        "position": 2,
+                                        "laneChange": "left"
+                                    },
+                                    {
+                                        "position": 3,
+                                        "laneChange": "left"
+                                    }
+                                ]
+                            }
+                        }
+                    })
+
+                ||
+
+                equal(resultAPI, {
+                    status: 200,
+                    data: {
+                        route: {
+                            "track": [
+                                {
+                                    "position": 3,
+                                    "obstacles": ["b"]
+                                }
+                            ],
+                            "travelLog": []
+                        }
+                    }
+                })
+
+                ||
+
+                equal(resultAPI, { status: 500, data: null })
+
+            );
+        });
     }).timeout(time);
 
 });
@@ -69,7 +308,6 @@ describe('Testing Car Driving Services', function () {
         let resultDriver = await driverObject.runRoute(testRoute);
         expect(resultDriver).to.be.an('object');
         expect(resultDriver.status).to.equal('success');
-
     }).timeout(time);
 
     it('GET /success-no-obstacles', async () => {

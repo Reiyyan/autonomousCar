@@ -32,7 +32,11 @@ http://localhost:3000/drive/failure-hits-obstacle,
 http://localhost:3000/drive/random
 
 Automated Testing
+
+I've kept all tests in one file for sake of simplicity for the time being, in a real project tests would be split out as units per components.
+
 ```bash
 $ npm install
 $ npm test
 ```
+
